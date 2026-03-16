@@ -69,3 +69,13 @@ export {
   resetOpenCodeModelsCacheForTests,
 } from "./models.js";
 export { parseOpenCodeJsonl, isOpenCodeUnknownSessionError } from "./parse.js";
+export {
+  getSubscriptionPlan,
+  isSubscriptionModel,
+  getBillingType,
+  calculateEffectiveCost,
+  fetchOpenCodeUsage,
+  getSubscriptionMetadata,
+  OPENCODE_SUBSCRIPTION_PLANS,
+} from "./cost-tracking.js";
+export type { OpenCodeSubscriptionPlan, OpenCodeUsageData } from "./cost-tracking.js";

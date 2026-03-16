@@ -19,6 +19,7 @@ import {
 } from "@paperclipai/adapter-utils/server-utils";
 import { isOpenCodeUnknownSessionError, parseOpenCodeJsonl } from "./parse.js";
 import { ensureOpenCodeModelConfiguredAndAvailable } from "./models.js";
+import { getBillingType, calculateEffectiveCost, getSubscriptionMetadata } from "./cost-tracking.js";
 
 const __moduleDir = path.dirname(fileURLToPath(import.meta.url));
 const PAPERCLIP_SKILLS_CANDIDATES = [
@@ -347,6 +348,12 @@ export async function execute(ctx: AdapterExecutionContext): Promise<AdapterExec
       `OpenCode exited with code ${synthesizedExitCode ?? -1}`;
     const modelId = model || null;
 
+    // Calculate subscription-aware cost metrics
+    const billingType = getBillingType(modelId ?? "");
+    const subscriptionMetadata = billingType === "subscription" 
+      ? getSubscriptionMetadata(modelId ?? "")
+      : null;
+
     return {
       exitCode: synthesizedExitCode,
       signal: attempt.proc.signal,
@@ -362,11 +369,12 @@ export async function execute(ctx: AdapterExecutionContext): Promise<AdapterExec
       sessionDisplayId: resolvedSessionId,
       provider: parseModelProvider(modelId),
       model: modelId,
-      billingType: "unknown",
+      billingType,
       costUsd: attempt.parsed.costUsd,
       resultJson: {
         stdout: attempt.proc.stdout,
         stderr: attempt.proc.stderr,
+        subscriptionMetadata,
       },
       summary: attempt.parsed.summary,
       clearSession: Boolean(clearSessionOnMissingSession && !attempt.parsed.sessionId),
